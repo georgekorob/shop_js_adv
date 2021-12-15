@@ -4,7 +4,7 @@ function getCounter() {
     return () => ++last;
 }
 
-const stackIDGenrator = getCounter()
+const stackIDGenerator = getCounter()
 
 
 class Good {
@@ -29,13 +29,13 @@ class Good {
 
 class GoodStack {
     constructor(good) {
-        this.id = stackIDGenrator();
+        this.id = stackIDGenerator();
         this.good = good;
         this.count = 1;
     }
 
     getGoodId() {
-        return this.good.id
+        return this.good.getId()
     }
 
     getGood() {
@@ -44,6 +44,10 @@ class GoodStack {
 
     getCount() {
         return this.count;
+    }
+
+    getPrice() {
+        return this.good.getPrice() * this.count;
     }
 
     add() {
@@ -63,7 +67,7 @@ class Cart {
     }
 
     add(good) {
-        const idx = this.list.findIndex((stack) => stack.getGoodId() == good.id)
+        const idx = this.list.findIndex((stack) => stack.getGoodId() === good.getId())
 
         if (idx >= 0) {
             this.list[idx].add()
@@ -74,7 +78,7 @@ class Cart {
     }
 
     remove(id) {
-        const idx = this.list.findIndex((stack) => stack.getGoodId() == id)
+        const idx = this.list.findIndex((stack) => stack.getGoodId() === id)
 
         if (idx >= 0) {
             this.list[idx].remove()
@@ -97,12 +101,14 @@ class Showcase {
         this.list = [
             new Good({id: 1, title: 'Футболка', price: 140}),
             new Good({id: 2, title: 'Брюки', price: 320}),
-            new Good({id: 3, title: 'Галстук', price: 24})
+            new Good({id: 3, title: 'Галстук', price: 24}),
+            new Good({id: 4, title: 'Носки', price: 50}),
+            new Good({id: 5, title: 'Ботинки', price: 250}),
         ]
     }
 
     addToCart(id) {
-        const idx = this.list.findIndex((good) => id == good.id)
+        const idx = this.list.findIndex((good) => id === good.getId())
 
         if (idx >= 0) {
             this.cart.add(this.list[idx])
@@ -111,17 +117,24 @@ class Showcase {
 }
 
 
-const cart = new Cart()
-const showcase = new Showcase(cart)
+const cart = new Cart();
+const showcase = new Showcase(cart);
 
 showcase.fetchGoods();
 
-showcase.addToCart(1)
-showcase.addToCart(1)
-showcase.addToCart(1)
-showcase.addToCart(3)
+showcase.addToCart(1);
+showcase.addToCart(1);
+showcase.addToCart(1);
+showcase.addToCart(3);
 
-cart.remove(1)
+cart.remove(1);
 
 
-console.log(showcase, cart)
+console.log(showcase, cart);
+
+// Создать для отрисовки классы:
+// * карточки товара на ветрине
+// * карточки товара в корзине
+// * отрисовки ветрины
+// * отрисовки корзины (отрисовать модальное окно)
+
