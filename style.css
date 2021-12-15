@@ -15,6 +15,11 @@
     text-align: right;
 }
 
+.cart {
+    margin-top: 200px;
+    text-align: right;
+}
+
 .cart-button {
     border: none;
     background-color: #3c3a4f;
@@ -32,7 +37,7 @@
     transition: .4s;
 }
 
-.goods-list {
+.goods-list, .cart-list {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -58,4 +63,13 @@
 
 .goods-item p {
     font-size: 16px;
+}
+
+.cart-list {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
 }

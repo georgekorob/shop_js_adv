@@ -42,6 +42,10 @@ class GoodStack {
         return this.good;
     }
 
+    getTitle() {
+        return this.good.getTitle();
+    }
+
     getCount() {
         return this.count;
     }
@@ -133,7 +137,6 @@ cart.remove(1);
 // * карточки товара в корзине
 // * отрисовки корзины (отрисовать модальное окно)
 
-const $goodsList = document.querySelector('.goods-list');
 class RenderGoodShowcase {
     constructor(good) {
         this.good = good;
@@ -149,16 +152,51 @@ class RenderShowcase {
         this.showcase = showcase;
     }
 
-    render() {
-        let goodsList = this.showcase.list.map(
+    renderGoodList(lst, goodRenderClass) {
+        return lst.map(
             (good) => {
-                const renderGood = new RenderGoodShowcase(good);
+                const renderGood = new goodRenderClass(good);
                 return renderGood.render();
             }
         ).join('');
+    }
+
+    render() {
+        const $goodsList = document.querySelector('.goods-list');
+        let goodsList = this.renderGoodList(this.showcase.list, RenderGoodShowcase)
         $goodsList.insertAdjacentHTML('beforeend', goodsList);
     }
 }
 
 const renderShowcase = new RenderShowcase(showcase);
 renderShowcase.render();
+
+class RenderGoodCart {
+    constructor(goodstack) {
+        this.goodstack = goodstack;
+    }
+
+    render() {
+        return `<div class="goods-item"><h3>${this.goodstack.getTitle()}</h3><p>${this.goodstack.getCount()}</p><p>${this.goodstack.getPrice()}</p></div>`;
+    }
+}
+
+class RenderCart extends RenderShowcase {
+    render() {
+        const $cart = document.querySelector('.cart');
+        if($cart){
+            $cart.remove();
+        } else {
+            const $main = document.querySelector('.main');
+            let goodsList = this.renderGoodList(this.showcase.cart.list, RenderGoodCart);
+            let cart_element = `<div class="cart container"><div class="cart-list">${goodsList}</div></div>`
+            $main.insertAdjacentHTML('afterend', cart_element);
+        }
+    }
+}
+
+const renderCart = new RenderCart(showcase);
+
+document.querySelector('.cart-button').onclick = function (){
+    renderCart.render();
+}
