@@ -102,7 +102,6 @@ class Showcase {
             new Good({id: 1, title: 'Футболка', price: 140}),
             new Good({id: 2, title: 'Брюки', price: 320}),
             new Good({id: 3, title: 'Галстук', price: 24}),
-            new Good({id: 4, title: 'Носки', price: 50}),
             new Good({id: 5, title: 'Ботинки', price: 250}),
         ]
     }
@@ -116,7 +115,6 @@ class Showcase {
     }
 }
 
-
 const cart = new Cart();
 const showcase = new Showcase(cart);
 
@@ -129,12 +127,38 @@ showcase.addToCart(3);
 
 cart.remove(1);
 
-
-console.log(showcase, cart);
-
 // Создать для отрисовки классы:
 // * карточки товара на ветрине
-// * карточки товара в корзине
 // * отрисовки ветрины
+// * карточки товара в корзине
 // * отрисовки корзины (отрисовать модальное окно)
 
+const $goodsList = document.querySelector('.goods-list');
+class RenderGoodShowcase {
+    constructor(good) {
+        this.good = good;
+    }
+
+    render() {
+        return `<div class="goods-item"><h3>${this.good.getTitle()}</h3><p>${this.good.getPrice()}</p></div>`;
+    }
+}
+
+class RenderShowcase {
+    constructor(showcase) {
+        this.showcase = showcase;
+    }
+
+    render() {
+        let goodsList = this.showcase.list.map(
+            (good) => {
+                const renderGood = new RenderGoodShowcase(good);
+                return renderGood.render();
+            }
+        ).join('');
+        $goodsList.insertAdjacentHTML('beforeend', goodsList);
+    }
+}
+
+const renderShowcase = new RenderShowcase(showcase);
+renderShowcase.render();
