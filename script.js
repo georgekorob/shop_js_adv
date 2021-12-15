@@ -184,7 +184,7 @@ class RenderGoodCart {
 class RenderCart extends RenderShowcase {
     render() {
         const $cart = document.querySelector('.cart');
-        if($cart){
+        if ($cart) {
             $cart.remove();
         } else {
             const $main = document.querySelector('.main');
@@ -197,6 +197,6 @@ class RenderCart extends RenderShowcase {
 
 const renderCart = new RenderCart(showcase);
 
-document.querySelector('.cart-button').onclick = function (){
+document.querySelector('.cart-button').onclick = function () {
     renderCart.render();
 }
