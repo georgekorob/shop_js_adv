@@ -1,3 +1,40 @@
+const API_URL = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/';
+
+function send(onError, onSuccess, url, method = 'GET', data = '', headers = {}, timeout = 60000) {
+
+    let xhr;
+
+    if (window.XMLHttpRequest) {
+        // Chrome, Mozilla, Opera, Safari
+        xhr = new XMLHttpRequest();
+    } else if (window.ActiveXObject) {
+        // Internet Explorer
+        xhr = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    for ([key, value] of Object.entries(headers)) {
+        xhr.setRequestHeader(key, value)
+    }
+
+    xhr.timeout = timeout;
+
+    xhr.ontimeout = onError;
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status < 400) {
+                onSuccess(xhr.responseText)
+            } else if (xhr.status >= 400) {
+                onError(xhr.status)
+            }
+        }
+    }
+
+    xhr.open(method, url, true);
+
+    xhr.send(data);
+}
+
 function getCounter() {
     let last = 0;
 
@@ -5,7 +42,6 @@ function getCounter() {
 }
 
 const stackIDGenerator = getCounter()
-
 
 class Good {
     constructor({id, title, price}) {
@@ -55,13 +91,11 @@ class GoodStack {
     }
 
     add() {
-        this.count++;
-        return this.count;
+        return ++this.count;
     }
 
     remove() {
-        this.count--;
-        return this.count;
+        return --this.count;
     }
 }
 
@@ -78,20 +112,41 @@ class Cart {
         } else {
             this.list.push(new GoodStack(good))
         }
+    }
 
+    _onSuccess(response) {
+        const data = JSON.parse(response);
+        data.contents.forEach(product => {
+            let goodStack = new GoodStack(new Good({
+                id: product.id_product,
+                title: product.product_name,
+                price: product.price
+            }));
+            goodStack.count = product.quantity;
+            this.list.push(goodStack);
+        });
+    }
+
+    _onSuccessDelete(response) {
+        const data = JSON.parse(response)
+        if (data.result === 1) {
+            console.log('Товар удален!')
+        }
+    }
+
+    _onError(err) {
+        console.log(err);
+    }
+
+    getBasket() {
+        send(this._onError, this._onSuccess.bind(this), `${API_URL}getBasket.json`)
     }
 
     remove(id) {
-        const idx = this.list.findIndex((stack) => stack.getGoodId() === id)
-
-        if (idx >= 0) {
-            this.list[idx].remove()
-
-            if (this.list[idx].getCount() <= 0) {
-                this.list.splice(idx, 1)
-            }
-        }
-
+        send(this._onError, this._onSuccessDelete.bind(this),
+            `${API_URL}deleteFromBasket.json`,
+            'GET',
+            `{"id_product" : ${id}}`)
     }
 }
 
@@ -101,21 +156,35 @@ class Showcase {
         this.cart = cart;
     }
 
+    _onSuccess(response) {
+        const data = JSON.parse(response)
+        data.forEach(product => {
+            this.list.push(
+                new Good({id: product.id_product, title: product.product_name, price: product.price})
+            )
+        });
+    }
+
+    _onSuccessAdd(response) {
+        const data = JSON.parse(response)
+        if (data.result === 1) {
+            console.log('Товар добавлен!')
+        }
+    }
+
+    _onError(err) {
+        console.log(err);
+    }
+
     fetchGoods() {
-        this.list = [
-            new Good({id: 1, title: 'Футболка', price: 140}),
-            new Good({id: 2, title: 'Брюки', price: 320}),
-            new Good({id: 3, title: 'Галстук', price: 24}),
-            new Good({id: 5, title: 'Ботинки', price: 250}),
-        ]
+        send(this._onError, this._onSuccess.bind(this), `${API_URL}catalogData.json`)
     }
 
     addToCart(id) {
-        const idx = this.list.findIndex((good) => id === good.getId())
-
-        if (idx >= 0) {
-            this.cart.add(this.list[idx])
-        }
+        send(this._onError, this._onSuccessAdd.bind(this),
+            `${API_URL}addToBasket.json`,
+            'GET',
+            `{"id_product" : ${id}, "quantity" : 1}`)
     }
 }
 
@@ -123,13 +192,9 @@ const cart = new Cart();
 const showcase = new Showcase(cart);
 
 showcase.fetchGoods();
-
-showcase.addToCart(1);
-showcase.addToCart(1);
-showcase.addToCart(1);
-showcase.addToCart(3);
-
-cart.remove(1);
+showcase.addToCart(123);
+cart.remove(123);
+cart.getBasket();
 
 // Создать для отрисовки классы:
 // * карточки товара на ветрине
@@ -143,7 +208,12 @@ class RenderGoodShowcase {
     }
 
     render() {
-        return `<div class="goods-item"><h3>${this.good.getTitle()}</h3><p>${this.good.getPrice()}</p></div>`;
+        return `<div class="goods-item">
+                    <h3>${this.good.getTitle()}</h3>
+                    <p>${this.good.getPrice()}</p>
+                    <span class="hidden"></span>
+                    <button class="prod-button" type="button" id_info="${this.good.getId()}">Добавить</button>
+                </div>`;
     }
 }
 
@@ -168,16 +238,18 @@ class RenderShowcase {
     }
 }
 
-const renderShowcase = new RenderShowcase(showcase);
-renderShowcase.render();
-
 class RenderGoodCart {
     constructor(goodstack) {
         this.goodstack = goodstack;
     }
 
     render() {
-        return `<div class="goods-item"><h3>${this.goodstack.getTitle()}</h3><p>${this.goodstack.getCount()}</p><p>${this.goodstack.getPrice()}</p></div>`;
+        return `<div class="goods-item">
+                    <h3>${this.goodstack.getTitle()}</h3>
+                    <p>${this.goodstack.getCount()}</p>
+                    <p>${this.goodstack.getPrice()}</p>
+                    <button class="prod-del-button" type="button" id_info="${this.goodstack.getGoodId()}">Удалить</button>
+                </div>`;
     }
 }
 
@@ -191,12 +263,34 @@ class RenderCart extends RenderShowcase {
             let goodsList = this.renderGoodList(this.showcase.cart.list, RenderGoodCart);
             let cart_element = `<div class="cart container"><div class="cart-list">${goodsList}</div></div>`
             $main.insertAdjacentHTML('afterend', cart_element);
+
+            document.querySelectorAll('.prod-del-button').forEach(button => button.onclick = function (event) {
+                let prod_id = event.target.getAttribute('id_info');
+                cart.remove(prod_id);
+            });
         }
     }
 }
 
-const renderCart = new RenderCart(showcase);
+// Добавьте в соответствующие классы методы
+// * добавления товара в корзину (addToBasket.json)
+// * удаления товара из корзины (deleteFromBasket.json)
+// * получения списка товаров корзины (getBasket.json)
 
-document.querySelector('.cart-button').onclick = function () {
-    renderCart.render();
-}
+setTimeout(() => {
+    console.log(showcase, cart);
+
+    const renderShowcase = new RenderShowcase(showcase);
+    renderShowcase.render();
+
+    const renderCart = new RenderCart(showcase);
+
+    document.querySelector('.cart-button').onclick = function () {
+        renderCart.render();
+    }
+
+    document.querySelectorAll('.prod-button').forEach(button => button.onclick = function (event) {
+        let prod_id = event.target.getAttribute('id_info');
+        showcase.addToCart(prod_id);
+    });
+}, 1000);
