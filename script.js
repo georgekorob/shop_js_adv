@@ -115,8 +115,8 @@ class Cart {
     }
 
     _onSuccess(response) {
-        const data = JSON.parse(response);
-        data.contents.forEach(product => {
+        // const data = JSON.parse(response);
+        response.contents.forEach(product => {
             let goodStack = new GoodStack(new Good({
                 id: product.id_product,
                 title: product.product_name,
@@ -128,25 +128,41 @@ class Cart {
     }
 
     _onSuccessDelete(response) {
-        const data = JSON.parse(response)
-        if (data.result === 1) {
+        // const data = JSON.parse(response)
+        if (response.result === 1) {
             console.log('Товар удален!')
         }
     }
 
-    _onError(err) {
-        console.log(err);
-    }
+    // _onError(err) {
+    //     console.log(err);
+    // }
 
     getBasket() {
-        send(this._onError, this._onSuccess.bind(this), `${API_URL}getBasket.json`)
+        return fetch(`${API_URL}getBasket.json`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((response) => {
+                this._onSuccess(response);
+                return response;
+            })
+        // send(this._onError, this._onSuccess.bind(this), `${API_URL}getBasket.json`)
     }
 
     remove(id) {
-        send(this._onError, this._onSuccessDelete.bind(this),
-            `${API_URL}deleteFromBasket.json`,
-            'GET',
-            `{"id_product" : ${id}}`)
+        return fetch(`${API_URL}deleteFromBasket.json`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((response) => {
+                this._onSuccessDelete(response);
+                return response;
+            })
+        // send(this._onError, this._onSuccessDelete.bind(this),
+        //     `${API_URL}deleteFromBasket.json`,
+        //     'GET',
+        //     `{"id_product" : ${id}}`)
     }
 }
 
@@ -157,8 +173,7 @@ class Showcase {
     }
 
     _onSuccess(response) {
-        const data = JSON.parse(response)
-        data.forEach(product => {
+        response.forEach(product => {
             this.list.push(
                 new Good({id: product.id_product, title: product.product_name, price: product.price})
             )
@@ -166,35 +181,46 @@ class Showcase {
     }
 
     _onSuccessAdd(response) {
-        const data = JSON.parse(response)
-        if (data.result === 1) {
+        // const data = JSON.parse(response);
+        if (response.result === 1) {
             console.log('Товар добавлен!')
         }
     }
 
-    _onError(err) {
-        console.log(err);
-    }
+    // _onError(err) {
+    //     console.log(err);
+    // }
 
     fetchGoods() {
-        send(this._onError, this._onSuccess.bind(this), `${API_URL}catalogData.json`)
+        return fetch(`${API_URL}catalogData.json`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((response) => {
+                this._onSuccess(response);
+                return response;
+            })
+        // send(this._onError, this._onSuccess.bind(this), `${API_URL}catalogData.json`)
     }
 
     addToCart(id) {
-        send(this._onError, this._onSuccessAdd.bind(this),
-            `${API_URL}addToBasket.json`,
-            'GET',
-            `{"id_product" : ${id}, "quantity" : 1}`)
+        return fetch(`${API_URL}addToBasket.json`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((response) => {
+                this._onSuccessAdd(response);
+                return response;
+            })
+        // send(this._onError, this._onSuccessAdd.bind(this),
+        //     `${API_URL}addToBasket.json`,
+        //     'GET',
+        //     `{"id_product" : ${id}, "quantity" : 1}`)
     }
 }
 
 const cart = new Cart();
 const showcase = new Showcase(cart);
-
-showcase.fetchGoods();
-showcase.addToCart(123);
-cart.remove(123);
-cart.getBasket();
 
 // Создать для отрисовки классы:
 // * карточки товара на ветрине
@@ -277,9 +303,12 @@ class RenderCart extends RenderShowcase {
 // * удаления товара из корзины (deleteFromBasket.json)
 // * получения списка товаров корзины (getBasket.json)
 
-setTimeout(() => {
-    console.log(showcase, cart);
+const promise = showcase.fetchGoods();
 
+promise.then(() => {
+    showcase.addToCart(123);
+    cart.remove(123);
+    cart.getBasket();
     const renderShowcase = new RenderShowcase(showcase);
     renderShowcase.render();
 
@@ -293,4 +322,7 @@ setTimeout(() => {
         let prod_id = event.target.getAttribute('id_info');
         showcase.addToCart(prod_id);
     });
-}, 1000);
+})
+    .catch((err) => {
+    console.log(err);
+})
