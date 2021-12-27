@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "Apple",
+    "price": 300
+  },
+  {
+    "id": 2,
+    "title": "Samsung",
+    "price": 200
+  },
+  {
+    "id": 3,
+    "title": "Xiaomi",
+    "price": 100
+  },
+  {
+    "id": 4,
+    "title": "Asus",
+    "price": 400
+  },
+  {
+    "id": 5,
+    "title": "HUAWEI",
+    "price": 100
+  },
+  {
+    "id": 6,
+    "title": "HONOR",
+    "price": 150
+  },
+  {
+    "id": 7,
+    "title": "Lenovo",
+    "price": 200
+  },
+  {
+    "id": 8,
+    "title": "OPPO",
+    "price": 100
+  }
+]
