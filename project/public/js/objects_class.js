@@ -49,7 +49,8 @@ class Cart {
     }
 
     _onSuccess(response) {
-        response.contents.forEach(product => {
+        this.list = [];
+        response.forEach(product => {
             let goodStack = new GoodStack(new Good({
                 id: product.id,
                 title: product.title,
@@ -58,12 +59,15 @@ class Cart {
             goodStack.count = product.quantity;
             this.list.push(goodStack);
         });
+        return response;
     }
 
-    _onSuccessDelete(response) {
+    _onSuccessDelete(response, id) {
         if (response.result === 1) {
-            console.log('Товар удален!')
+            console.log('Товар удален!');
+            this.list = this.list.filter(x => x.getGoodId() !== id);
         }
+        return response;
     }
 
     getBasket() {
@@ -72,20 +76,22 @@ class Cart {
                 return response.json();
             })
             .then((response) => {
-                this._onSuccess(response);
-                return response;
+                return this._onSuccess(response);
             })
     }
 
     remove(id) {
-        return fetch(`${API_URL}api/v1/cart`)
-            .then((response) => {
-                return response.json();
-            })
-            .then((response) => {
-                this._onSuccessDelete(response);
-                return response;
-            })
+        return fetch(`${API_URL}api/v1/cart`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({id: id})
+        }).then((response) => {
+            return response.json();
+        }).then((response) => {
+            return this._onSuccessDelete(response, id);
+        })
     }
 }
 
@@ -105,31 +111,33 @@ class Showcase {
 
     _onSuccessAdd(response) {
         if (response.result === 1) {
-            console.log('Товар добавлен!')
+            console.log('Товар добавлен!');
         }
+        return response;
     }
 
     fetchGoods() {
-        return fetch(`${API_URL}api/v1/showcase`, {mode: 'no-cors'})
-            // return fetch(`${API_URL}catalogData.json`)
+        return fetch(`${API_URL}api/v1/showcase`)
             .then((response) => {
                 return response.json();
-            })
-            .then((response) => {
+            }).then((response) => {
                 this._onSuccess(response);
                 return response;
             })
     }
 
     addToCart(id) {
-        return fetch(`${API_URL}api/v1/cart`)
-            .then((response) => {
-                return response.json();
-            })
-            .then((response) => {
-                this._onSuccessAdd(response);
-                return response;
-            })
+        return fetch(`${API_URL}api/v1/cart`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({id: id})
+        }).then((response) => {
+            return response.json();
+        }).then((response) => {
+            return this._onSuccessAdd(response);
+        })
     }
 }
 
