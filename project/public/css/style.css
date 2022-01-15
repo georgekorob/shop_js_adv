@@ -3,6 +3,10 @@ body {
 }
 
 header {
+    display: flex;
+    position: relative;
+    justify-content: space-between;
+    color: #fafafa;
     padding: 10px;
     margin-bottom: 20px;
 }
@@ -10,4 +14,13 @@ header {
 .goods-item {
     padding: 10px;
     border-color: #2c2649 !important;
+}
+
+.btn-search {
+    background-color: transparent;
+    border: none;
+    color: #fafafa;
+}
+.search-field:focus{
+    outline: none;
 }
